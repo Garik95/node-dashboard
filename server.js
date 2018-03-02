@@ -8,6 +8,7 @@ var port     = process.env.PORT || 8888;
 var mongoose = require('mongoose');
 var passport = require('passport');
 var flash    = require('connect-flash');
+var path     = require('path');
 
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
@@ -28,7 +29,8 @@ app.use(bodyParser.json()); // get information from html forms
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs'); // set up ejs for templating
-
+//app.use(express.static(__dirname, '/views/template'));
+app.use(express.static('views/template'));
 // required for passport
 app.use(session({
     secret: '3F3AF1ECEBBD1410AB417EC0D27BBFCB5D340E177AE159B59FC8626C2DFD9175', // session secret SHA256
