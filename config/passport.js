@@ -1,3 +1,6 @@
+var md5 	= require('md5');
+var nodemailer  = require('nodemailer');
+var unix 	= require('unix-timestamp'); 
 // load all the things we need
 var LocalStrategy    = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
@@ -9,6 +12,18 @@ var User       = require('../app/models/user');
 
 // load the auth variables
 var configAuth = require('./auth'); // use this one for testing
+const from = 'n_garry95@mail.ru';
+const route = "http://2ea7fd4e.ngrok.io/confirmEmail?";
+// configure origin mail
+var transporter = nodemailer.createTransport({
+  service: 'Mail.ru',
+  proxy: 'http://10.20.0.109:3128',
+  auth: {
+    user: from,
+    pass: '2606111'
+  }
+});
+
 
 module.exports = function(passport) {
 
@@ -45,14 +60,14 @@ module.exports = function(passport) {
 
         // asynchronous
         process.nextTick(function() {
-            User.findOne({ 'local.email' :  email }, function(err, user) {
+            User.findOne({ 'local.email' :  email , 'local.status':true}, function(err, user) {
                 // if there are any errors, return the error
                 if (err)
                     return done(err);
 
                 // if no user is found, return the message
                 if (!user)
-                    return done(null, false, req.flash('loginMessage', 'No user found.'));
+                    return done(null, false, req.flash('loginMessage', 'No email found or email no longer activated'));
 
                 if (!user.validPassword(password))
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
@@ -94,15 +109,32 @@ module.exports = function(passport) {
 
                         // create the user
                         var newUser            = new User();
-
-                        newUser.local.email    = email;
-                        newUser.local.password = newUser.generateHash(password);
-
+			var now = unix.now();
+			var hash = md5(email + '+' + now);
+                        newUser.local.email     = email;
+                        newUser.local.password  = newUser.generateHash(password);
+			newUser.local.emailHash = hash;
+			newUser.local.createdAt = now;
+			newUser.local.status	= 0;
                         newUser.save(function(err) {
                             if (err)
                                 return done(err);
-
-                            return done(null, newUser);
+			
+			var mailOptions = {
+  			from: from,
+  			to: email,
+  			subject: 'Email confirmation',
+ 			html: '<h1>Email Confirmation</h1><br><a href="'+route+'token=' + hash + '&email=' + email + '" target="_blank">Confirm Email</a>'
+			};	
+			
+			transporter.sendMail(mailOptions, function(error, info){
+  			if (error) {
+    console.log(error);
+  } else {
+    console.log('Email sent: ' + info.response);
+  }
+}); 
+                            return done(null, newUser, req.flash('signupMessage', 'Email confirmation has been sent to ' + email));
                         });
                     }
 

@@ -17,9 +17,14 @@
     </head>
     <body>
         <div class="login-container lightmode">
-    <% if (message.length > 0) { %>
-        <div class="alert alert-danger text-center"><%= message %></div>
-    <% } %>
+    <% if (message.length > 0) {
+   	switch(status){
+		case "R" : {%> <div class="alert alert-danger text-center"><%= message %> </div> <% }break;
+		case "Y" : {%> <div class="alert alert-warning text-center"><%= message %> </div> <% }break;
+		case "G" : {%> <div class="alert alert-success text-center"><%= message %> </div> <% }break;
+		default  : {%> <div class="alert alert-danger text-center"><%= message %> </div> <% } 
+		}
+     } %>
             <div class="login-box animated fadeInDown">
                 <div>Some logo</div>
                 <div class="login-body">

@@ -1,10 +1,12 @@
+var User       = require('./models/user');
+var unix       = require('unix-timestamp');
 module.exports = function(app, passport) {
 
 // normal routes ===============================================================
 
     // show the home page (will also have our login links)
     app.get('/', function(req, res) {
-        res.render('template/login.ejs',{message:0});
+        res.render('template/login.ejs',{message:0,status:"R"});
     });
 
     // PROFILE SECTION =========================
@@ -19,6 +21,35 @@ module.exports = function(app, passport) {
         req.logout();
         res.redirect('/');
     });
+// confirm email ===============================================================
+
+   app.get('/confirmEmail',function(req, res){
+	var token = req.param('token');
+	var email = req.param('email');
+	User.findOne({'local.email':email,'local.emailHash':token}, function(err, user) {
+	if(!user) {res.render('template/signup.ejs',{message:"Something went wrong!",status:"R"})}
+	else
+	{
+		var c = parseFloat(user.local.createdAt);
+		if((unix.now() - c) <= 24*60*40) { 
+			activateUser(email);
+			res.render('template/login.ejs',{message:"Your account has been confirmed!",status:"G"});
+		}
+		else {
+			expiredUser(email);
+			res.render('template/signup.ejs',{message:"Your sign up request expired!",status:"Y"})
+		}
+	}
+	});
+   });
+	function activateUser(email)
+	{
+		User.update({"local.email" : email},{$set:{"local.status":true}},function(err,user){ if(err) console.log(err); });
+	}
+	function expiredUser(email)
+	{
+		User.deleteOne({"local.email" : email},function(err,user){ if(err) console.log(err); });
+	}
 
 // =============================================================================
 // AUTHENTICATE (FIRST LOGIN) ==================================================
@@ -28,7 +59,7 @@ module.exports = function(app, passport) {
         // LOGIN ===============================
         // show the login form
         app.get('/login', function(req, res) {
-            res.render('template/login.ejs', { message: req.flash('loginMessage') });
+            res.render('template/login.ejs', { message: req.flash('loginMessage'),status:"R" });
         });
 
         // process the login form
@@ -41,12 +72,12 @@ module.exports = function(app, passport) {
         // SIGNUP =================================
         // show the signup form
         app.get('/signup', function(req, res) {
-            res.render('template/signup.ejs', { message: req.flash('signupMessage') });
+            res.render('template/signup.ejs', { message: req.flash('signupMessage'),status:"R" });
         });
 
         // process the signup form
         app.post('/signup', passport.authenticate('local-signup', {
-            successRedirect : '/profile', // redirect to the secure profile section
+            successRedirect : '/signup', // redirect to the secure profile section
             failureRedirect : '/signup', // redirect back to the signup page if there is an error
             failureFlash : true // allow flash messages
         }));
