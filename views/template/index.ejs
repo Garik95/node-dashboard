@@ -9,12 +9,7 @@
             
             <% include ./partial/side_nav_bar %> 
             
-            <% 
-            switch(page){
-                case "index": {include ./pages/dashboard} break;
-                case "setting": {include ./pages/settings} break;                
-            } 
-            %>
+            <% include ./pages/dashboard %>
         </div>
         <!-- END PAGE CONTAINER -->
 
