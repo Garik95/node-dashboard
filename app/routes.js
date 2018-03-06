@@ -7,11 +7,15 @@ module.exports = function(app, passport) {
     // show the home page (will also have our login links)
     app.get('/', function(req, res) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         res.render('template/login.ejs',{message:0,status:"R"});
 =======
         if(req.isAuthenticated){res.redirect('/profile');}
         else res.render('index.ejs');
 >>>>>>> bf2fe746729a9b1bbb1bea93f4aa0d9a178b341f
+=======
+       res.render('index.ejs');
+>>>>>>> auth_route
     });
 
     // PROFILE SECTION =========================
