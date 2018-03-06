@@ -12,7 +12,16 @@ module.exports = function(app, passport) {
     // PROFILE SECTION =========================
     app.get('/profile', isLoggedIn, function(req, res) {
         res.render('template/index.ejs', {
-            user : req.user
+            user : req.user,
+            page : "index"
+        });
+    });
+
+    // PROFILE SECTION =========================
+    app.get('/settings', isLoggedIn, function(req, res) {
+        res.render('template/index.ejs', {
+            user : req.user,
+            page : "settings"
         });
     });
 
